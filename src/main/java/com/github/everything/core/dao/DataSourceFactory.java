@@ -11,7 +11,7 @@ import java.sql.SQLException;
 
 public class DataSourceFactory {
 
-    private static volatile DataSource instance;
+    private static volatile DruidDataSource instance;
     private DataSourceFactory(){
 
     }
@@ -23,7 +23,7 @@ public class DataSourceFactory {
                     instance = new DruidDataSource();
                     instance.setUrl("jdbc:mysql://127.0.0.1:3306/everything_h2");
                     instance.setUsername("root");
-                    instance.setPassward("root");
+                    instance.setPassword("root");
                     instance.setDriverClassName("com.mysql.jdbc.Driver");
                 }
             }
