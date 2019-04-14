@@ -1,13 +1,17 @@
 package com.github.everything.core.dao.impl;
 
+import com.github.everything.core.dao.DataSourceFactory;
 import com.github.everything.core.dao.FileIndexDao;
 import com.github.everything.core.model.Condition;
+import com.github.everything.core.model.FileType;
 import com.github.everything.core.model.Thing;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,20 +28,93 @@ public class FileIndexDaoImpl implements FileIndexDao {
         PreparedStatement statement = null;
         try {
             connection = this.dataSource.getConnection();
-            String sql = "insert into everything_h2 () values (?,?,?,?)";
+            String sql = "insert into thing () values (?,?,?,?)";
             statement = connection.prepareStatement(sql);
+            statement.setString(1,thing.getName());
+            statement.setString(2,thing.getPath());
+            statement.setInt(3,thing.getDepth());
+            statement.setString(4,thing.getFileType().name());
+            statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }finally {
+            releaseResource(null, statement, connection);
         }
     }
 
     @Override
     public void delete(Thing thing) {
-
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try {
+            connection = this.dataSource.getConnection();
+            String sql = "delete from thing where  path = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, thing.getPath());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            releaseResource(null, statement, connection);
+        }
     }
 
     @Override
     public List<Thing> query(Condition condition) {
-        return null;
+        List<Thing> things = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = this.dataSource.getConnection();
+            StringBuilder sb = new StringBuilder();
+            sb.append("select name,path,depth,file_type from thing");
+            sb.append(" where ");
+            sb.append(" name = like '").append(condition.getName()).append("%'");
+            if(condition.getFileType() != null){
+                FileType fileType = FileType.lookupByName(condition.getName());
+                sb.append("and file_type='"+ fileType.name()+"'");
+            }
+
+            statement = connection.prepareStatement(sb.toString());
+            resultSet = statement.executeQuery();
+            while (resultSet.next()){
+                Thing thing = new Thing();
+                thing.setName(resultSet.getString("name"));
+                thing.setPath(resultSet.getString("path"));
+                thing.setDepth(resultSet.getInt("depth"));
+                thing.setFileType(FileType.lookupByName(resultSet.getString("file_type")));
+                things.add(thing);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+           releaseResource(resultSet, statement, connection);
+        }
+        return things;
+    }
+
+    private void releaseResource(ResultSet resultSet, PreparedStatement statement, Connection connection){
+        if(resultSet != null){
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if(statement != null){
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (connection != null){
+            try{
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

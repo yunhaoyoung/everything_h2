@@ -4,7 +4,7 @@ import java.util.*;
 
 public enum FileType {
     IMG("jpg","jpeg","png","bmp","gif"),
-    DOC("doc","docx","pdf","ppt","pptx","xls"),
+    DOC("doc","docx","pdf","ppt","pptx","xls","txt"),
     BIN("exe","jar","sh","msi"),
     ARCHIVE("zip","rar"),
     OTHER("*");
