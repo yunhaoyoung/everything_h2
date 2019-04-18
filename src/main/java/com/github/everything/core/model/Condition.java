@@ -7,4 +7,8 @@ public class Condition {
     private String name;
 
     private String fileType;
+
+    private Integer limit;
+
+    private Boolean orderByDepthAsc;
 }

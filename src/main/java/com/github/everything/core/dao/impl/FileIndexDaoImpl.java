@@ -70,11 +70,13 @@ public class FileIndexDaoImpl implements FileIndexDao {
             StringBuilder sb = new StringBuilder();
             sb.append("select name,path,depth,file_type from thing");
             sb.append(" where ");
-            sb.append(" name = like '").append(condition.getName()).append("%'");
+            sb.append(" name like '").append(condition.getName()).append("%'");
             if(condition.getFileType() != null){
-                FileType fileType = FileType.lookupByName(condition.getName());
+                FileType fileType = FileType.lookupByName(condition.getFileType());
                 sb.append("and file_type='"+ fileType.name()+"'");
             }
+            sb.append(" order by depth ").append(condition.getOrderByDepthAsc() ? "asc" : "desc");
+            sb.append(" limit ").append(condition.getLimit());
 
             statement = connection.prepareStatement(sb.toString());
             resultSet = statement.executeQuery();
